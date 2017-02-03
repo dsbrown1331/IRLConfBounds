@@ -1,4 +1,4 @@
-import mdp
+from solvers import mdp
 import copy
 import numpy as np
 

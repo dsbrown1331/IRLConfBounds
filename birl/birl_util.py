@@ -1,4 +1,4 @@
-import mdp
+from solvers import mdp
 import copy
 
 def calculate_mean_mdp(chain, burn, mdp_model):

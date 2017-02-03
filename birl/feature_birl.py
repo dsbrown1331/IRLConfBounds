@@ -4,7 +4,7 @@ based on aima-based-irl
 """
 
 from solvers.mdp import *
-from utils import *
+from solvers.utils import *
 from copy import deepcopy
 from math import exp
 

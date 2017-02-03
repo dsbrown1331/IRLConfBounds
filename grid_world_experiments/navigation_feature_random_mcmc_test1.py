@@ -1,7 +1,7 @@
-import mdp
-import my_birl_feature
-import birl_util
-import confidence_bounds
+import solvers.mdp
+import birl.feature_birl
+import birl.birl_util
+import bounds.confidence_bounds
 import random
 #Testing for a fixed world and fixed random policy how the conf bounds compare to real performance gap
 
