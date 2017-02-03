@@ -3,8 +3,14 @@ from birl import feature_birl
 from birl import birl_util
 from bounds import confidence_bounds
 import random
+import copy
 #Testing for a fixed world and fixed random policy how the conf bounds compare to real performance gap
+#sticking with alpha = 100
+#testing results for larger chains on toy problem
+#testing more reps
+#larger burn
 
+##Testing optimal policy, actually, I can prove it will always be zero!
 
 ##MDP PARAMS
 r_min = -1
@@ -15,12 +21,12 @@ gamma = 0.9
 
 ##BIRL PARAMS
 mcmc_step = 0.1
-burn = 0
-chain_lengths = [10,50, 100, 200, 500, 1000, 2000]
-test_alphas = [1,5,50,100,500]   #seems to really affect how close we match the expert! with low values we get differences. with 100+ we get exact match to demos even in only a couple iterations like 20 steps of mcmc
+burn = 50
+chain_lengths = [2000]
+test_alphas = [100]   #seems to really affect how close we match the expert! with low values we get differences. with 100+ we get exact match to demos even in only a couple iterations like 20 steps of mcmc
 
 ##EXPERIMENT PARAMS
-num_reps = 25
+num_reps = 100
 delta_conf = 0.95
 
 ####make world
@@ -67,6 +73,7 @@ true_mdp.init = true_mdp.states
 true_mdp.print_rewards()
 true_mdp.print_arrows()
 
+
 ### use hard coded demos from optimal policy
 opt_pi, opt_U = mdp.policy_iteration(true_mdp)
 demos_all = []
@@ -82,18 +89,25 @@ for s0 in true_mdp.init:
 print demos_all
 
 #use bad policy, always go right, as evaluation policy
-rand_pi = {s:(1,0) for s in true_mdp.states}
+#rand_pi = {s:(1,0) for s in true_mdp.states}
+#rand_pi = {s:random.choice(true_mdp.actlist) for s in true_mdp.states}
+rand_pi = copy.deepcopy(opt_pi)
+#tweak two states, one is equally good, the other is suboptimal but not dangerous
+#rand_pi[(1,4)] = (0,-1)
+#rand_pi[(4,4)] = (-1,0)
 #print "random policy", rand_pi
+#print rand_pi == opt_pi
+
 
 for alpha in test_alphas:
     print "alpha",alpha
     for num_mcmc_samples in chain_lengths:
         print "chain length", num_mcmc_samples
-        f = open("paper_test/grid_world/ctrpolicy_size"+str(size) +"_mcmc"+str(num_mcmc_samples)+"_reps" + str(num_reps) + "_alpha" + str(alpha) +  ".txt",'w')
+        f = open("paper_test/grid_world/ratio_ctrpolicy7_size"+str(size) +"_mcmc"+str(num_mcmc_samples)+"_reps" + str(num_reps) + "_alpha" + str(alpha) +  ".txt",'w')
         
         f.write("predicted\tactual\n")
         for rep in range(num_reps):
-        
+            print rep
             print "using ", num_mcmc_samples, " samples"
             demos = demos_all
             ###calculate the evaluation policy, keep this fixed for now
@@ -120,7 +134,7 @@ for alpha in test_alphas:
                 
             #TODO make sure that they are wrt to values not whatever action is argmax
             ###calculate performance bounds rep times to get accuracy
-            conf_diff, true_diff = confidence_bounds.bound_return_diff_mcmc(rand_pi, opt_pi, true_mdp, demos, delta_conf, chain)
+            conf_diff, true_diff = confidence_bounds.bound_return_ratio_mcmc(rand_pi, opt_pi, true_mdp, demos, delta_conf, chain)
             
             f.write("%f\t%f\n" % (conf_diff, true_diff))
         f.close()

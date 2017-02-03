@@ -37,7 +37,7 @@ def plot_nav_world(size, features, demonstrations):
             col = 3
             
         image[r,c] = col
-    print "image", image
+    #print "image", image
         
     #image[0,0] = 0 #red
     #image[0,1] = 1 #blue

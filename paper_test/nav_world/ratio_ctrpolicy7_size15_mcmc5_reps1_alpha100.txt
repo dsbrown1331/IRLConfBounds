@@ -1,0 +1,2 @@
+predicted	actual
+nan	19.080051
