@@ -89,7 +89,7 @@ g3
 s(I2
 I0
 tp25
-g3
+g6
 s(I4
 I3
 tp26
