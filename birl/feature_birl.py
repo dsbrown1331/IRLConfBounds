@@ -50,8 +50,8 @@ class BIRL_FEATURE():
         bestPosterior = posterior 
         bestMDP = mdp
         for i in range(self.birl_iteration):
-            if i % 10 == 0:
-                print "===== iter", i, "======"
+            #if i % 500 == 0:
+            #    print "===== iter", i, "======"
             #print i
             #print self.birl_iteration/10 
             #if i%(self.birl_iteration/10) == 0:
