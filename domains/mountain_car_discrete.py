@@ -5,7 +5,7 @@ Created on Jan 23, 2017
 '''
 
 import numpy as np
-import solvers.mdp as mdp
+from solvers import mdp
 import math
 
 #TODO figure out terminal and None action with end of game
@@ -29,8 +29,8 @@ class MountainCarGridMDP(mdp.MDP):
         self.vel_discretized = np.linspace(self.min_speed, self.max_speed, discretization)
         self.states = [(p,v) for p in self.pos_discretized for v in self.vel_discretized]
         self.action_list = [0,1,2]
-        print "grid positions", self.pos_discretized
-        print "grid velocities", self.vel_discretized
+        #print "grid positions", self.pos_discretized
+        #print "grid velocities", self.vel_discretized
     
     #mountain car always has reward of -1
     def R(self, state):
@@ -78,7 +78,6 @@ class MountainCarGridMDP(mdp.MDP):
         if abs(val_list[pos_idx - 1] - val) < abs(val_list[pos_idx] - val):
             pos_idx -= 1
         return pos_idx
-    
 # def main():
 #     pos_min = -1.2
 #     pos_max = 0.6

@@ -9,11 +9,12 @@ import domains.mountain_car_discrete as mc
 import matplotlib.pyplot as plt
 from solvers.mdp import policy_iteration
 import random
+from birl import birl
 
 def main():
 
-    
-    world = mc.MountainCarGridMDP(20, gamma=.95)
+    discr_size = 20
+    world = mc.MountainCarGridMDP(discr_size, gamma=.95)
     
     opt_pi, opt_v = policy_iteration(world)
     print opt_pi
@@ -43,6 +44,10 @@ def main():
     plt.plot(pos_history[0],vel_history[0],'bo')
     plt.plot(pos_history[-1],vel_history[-1],'r^')
     plt.show()
+    
+    grid_size = (discr_size, discr_size)
+    birl_alg = birl.BIRL_BATCH(expert_trace, grid_size, [], [], step_size=0.1, r_min=-1.0,
+                 r_max=1.0, prior = 'uniform', birl_iteration = 2000, gamma = 0.95, alpha=10.0, init_mdp = )
 
 
 if __name__ == '__main__':
