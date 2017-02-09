@@ -210,6 +210,43 @@ def bound_return_ratio_mcmc(eval_pi, opt_pi, true_mdp, demos, delta_conf, reward
     print "true ratio = ", true_diff
     return conf_diff, true_diff, ratios_descending
 
+def bound_return_ratio_mcmc_policies(eval_pi, opt_pi, true_mdp, demos, delta_conf, reward_samples, burn=0):
+    reward_samples = reward_samples[burn:]
+    num_samples = len(reward_samples)
+    print "num samples", num_samples
+    diffs = []
+    #get initial starting distribution from mdp
+    start_dist = [(1./len(true_mdp.init), s) for s in true_mdp.init]
+    print "start distribution", start_dist
+    for r in reward_samples:
+        #get optimal policy from reward r 
+        sample_mdp = copy.deepcopy(true_mdp)
+        sample_mdp.reward = r
+        sample_pi, sample_U = mdp.policy_iteration(sample_mdp)
+        #calculate the return difference between demos and eval policy
+        diff = policy_value_true_ratio(eval_pi, sample_pi, sample_mdp, start_dist)
+        #print "ratio=", diff
+        if not (np.isnan(diff)) and not (np.isinf(diff)):
+            diffs.append(diff)
+    #print "unsorted", diffs
+    #sort the differences between demo return and map return and pick the (1-delta) percentile
+    #print ratios
+    ratios_ascending = np.sort(diffs)    
+    ratios_descending = ratios_ascending[::-1]
+    #print "sorted", ratios_descending
+    upper_bnd_indx = int(np.floor((1-delta_conf) * num_samples))
+    #print upper_bnd_indx
+    print delta_conf, "th percentile", ratios_descending[upper_bnd_indx] 
+    conf_diff = ratios_descending[upper_bnd_indx] 
+
+
+    #compare the lower bound to the difference between the map return and the return of the optimal policy on the actual reward.
+    #just use the true mdp
+    true_diff = policy_value_true_ratio(eval_pi, opt_pi, true_mdp,
+                                         start_dist)
+    print "true ratio = ", true_diff
+    return conf_diff, true_diff, diffs
+
 #use the bound from phil's paper on high confidence off-policy eval    
 def chernoff_hoeffding(x, delta, b):
     return np.mean(x) - b * np.sqrt(np.log(1/delta)/(2*len(x)))

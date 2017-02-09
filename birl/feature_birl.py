@@ -36,6 +36,7 @@ class BIRL_FEATURE():
     def run_birl(self):
         #This is the core BIRL algorithm
         Rchain = [] #store rewards along the way, #TODO dictionaries are probably not best...
+        Pchain = []
         #TODO make this a random reward vector
         if self.start_mdp == None:
             mdp = self.create_zero_weights() #pick a starting reward vector
@@ -92,7 +93,7 @@ class BIRL_FEATURE():
                     if bestPosterior < new_posterior:
                         bestPosterior = new_posterior
                         bestMDP = new_mdp
-                        print "best", i, "P", bestPosterior
+                        #print "best", i, "P", bestPosterior
                         #bestMDP.print_rewards()
                         #bestMDP.print_arrows()
                     
@@ -115,7 +116,8 @@ class BIRL_FEATURE():
             #print "---"
 
             Rchain.append(mdp.reward)
-        return Rchain, bestMDP
+            Pchain.append(pi)
+        return Rchain, Pchain, bestMDP
         
         #------------- Reward functions ------------
 

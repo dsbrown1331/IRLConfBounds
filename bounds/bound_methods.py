@@ -9,8 +9,8 @@ Empirical Bootstrap method
 #times to get a bunch of sample deviations from mean
 
 import numpy as np
-import scipy
-
+from scipy import stats
+from numpy import NaN
 
 
 
@@ -20,10 +20,10 @@ def bootstrap_confidence(sample_data, delta_conf, num_bootstrap):
        delta_confidence is actual confidence not 1-, e.g. delta_conf = 95%
     """
     
-    sample_mean = np.mean(sample_data)
+    sample_mean = np.nanmean(sample_data)
     #print "sample mean", sample_mean
     num_to_sample = len(sample_data)
-    bootstrap_means = np.array([np.mean(np.random.choice(sample_data, num_to_sample, 
+    bootstrap_means = np.array([np.nanmean(np.random.choice(sample_data, num_to_sample, 
                                 replace=True)) for i in range(num_bootstrap)])
     bootstrap_diffs = bootstrap_means - sample_mean
     sorted_diffs = np.sort(bootstrap_diffs)
@@ -41,12 +41,12 @@ def bootstrap_confidence(sample_data, delta_conf, num_bootstrap):
     return lower_bnd, upper_bnd
 ####!!!!!!!!!!!!!!! I think there is a bug in my code where I should be subtracting one from bounds in conf_bounds.py
 
-def bootstrap_confidence_upper(sample_data, delta_conf, num_bootstrap):
+def bootstrap_empirical_confidence_upper(sample_data, delta_conf, num_bootstrap):
     """Returns a 1-delta confidence bound on range of mean"""
-    sample_mean = np.mean(sample_data)
+    sample_mean = np.nanmean(sample_data)
     #print "sample mean", sample_mean
     num_to_sample = len(sample_data)
-    bootstrap_means = np.array([np.mean(np.random.choice(sample_data, num_to_sample, 
+    bootstrap_means = np.array([np.nanmean(np.random.choice(sample_data, num_to_sample, 
                                 replace=True)) for i in range(num_bootstrap)])
     bootstrap_diffs = bootstrap_means - sample_mean
     sorted_diffs = np.sort(bootstrap_diffs)
@@ -58,10 +58,22 @@ def bootstrap_confidence_upper(sample_data, delta_conf, num_bootstrap):
     upper_bnd = sample_mean - sorted_diffs[lower_bnd_indx]
     #print "95\% conf bound", upper_bnd
     return upper_bnd
+
+def bootstrap_percentile_confidence_upper(sample_data, delta_conf, num_bootstrap):
+    """Returns a 1-delta confidence bound on range of mean"""
+    #sample_mean = np.mean(sample_data)
+    #print "sample mean", sample_mean
+    num_to_sample = len(sample_data)
+    bootstrap_means = np.array([np.nanmean(np.random.choice(sample_data, num_to_sample, 
+                                replace=True)) for _ in range(num_bootstrap)])
+    data_descending = np.sort(bootstrap_means)[::-1]
+    #print "sorted", data_descending
+    upper_bnd_indx = int(np.floor((1-delta_conf) * num_bootstrap))
+    return data_descending[upper_bnd_indx] 
     
 def value_at_risk(sample_data, delta_conf):
     data_descending = np.sort(sample_data)[::-1]
-    #print "sorted", ratios_descending
+    #print "sorted", data_descending
     upper_bnd_indx = int(np.floor((1-delta_conf) * len(sample_data)))
     return data_descending[upper_bnd_indx] 
 
@@ -76,11 +88,11 @@ def phil_lower_bnd(sample_data, delta_conf, c):
     #print "truncated data", sample_data_trunc
     #print sample_data_trunc / c
     #print (sample_data_trunc / c )  ** 2
-    lower_bnd = (c / N) * (np.sum(sample_data_trunc / c) 
+    lower_bnd = (c / N) * (np.nansum(sample_data_trunc / c) 
             - (7.0*N*np.log(2.0/delta))/(3.0*(N-1.0)) 
             - np.sqrt( ((2.0*np.log(2.0/delta))/(N-1.0)) 
-            * (N * np.sum( (sample_data_trunc / c) ** 2) 
-            - (np.sum(sample_data_trunc / c)) ** 2) ))
+            * (N * np.nansum( (sample_data_trunc / c) ** 2) 
+            - (np.nansum(sample_data_trunc / c)) ** 2) ))
     return lower_bnd
     
 def phil_upper_bnd(sample_data, delta_conf, c):
@@ -94,34 +106,40 @@ def phil_upper_bnd(sample_data, delta_conf, c):
     #print "truncated data", sample_data_trunc
     #print sample_data_trunc / c
     #print (sample_data_trunc / c )  ** 2
-    upper_bnd = (c / N) * (np.sum(sample_data_trunc / c) 
+    upper_bnd = (c / N) * (np.nansum(sample_data_trunc / c) 
             + (7.0*N*np.log(2.0/delta))/(3.0*(N-1.0)) 
             + np.sqrt( ((2.0*np.log(2.0/delta))/(N-1.0)) 
-            * (N * np.sum( (sample_data_trunc / c) ** 2) 
-            - (np.sum(sample_data_trunc / c)) ** 2) ))
+            * (N * np.nansum( (sample_data_trunc / c) ** 2) 
+            - (np.nansum(sample_data_trunc / c)) ** 2) ))
     return upper_bnd
     
 def ttest_upper_bnd(sample_data, delta_conf):
     #compute mean and sample stdev
     m = len(sample_data)
-    sample_mean = np.mean(sample_data)
-    sample_std =  np.std(sample_data, ddof=1)
-    t_val = scipy.stats.t.ppf(delta_conf, m - 1)
+    sample_mean = np.nanmean(sample_data)
+    sample_std =  np.nanstd(sample_data, ddof=1)
+    #if sample_mean > 10000:
+    #    print "why"
+    #print "sample mean", sample_mean
+    #print "sample_std", sample_std
+    t_val = stats.t.ppf(delta_conf, m - 1)
     return sample_mean + sample_std / np.sqrt(m) * t_val
     
 
 #testing scripts for bounds
 def main():
-    sample_data = np.array([1,2,3,2,1,2,1,2,1,1,1,1,1,100,100,1,1,2,4,5,6,7])
+    sample_data = [NaN, 1, 2, 3, NaN,1,1,2,3,4,3,2,1,1,1,1,1]
+    #sample_data = np.array([1,2,3,2,1,2,1,2,1,1,1,1,1,100,100,1,1,2,4,5,6,7])
     #sample_data = np.array(np.random.rand(3000))
     num_b = 10000
     delta_conf = 0.95
-    print "sample mean", np.mean(sample_data)
+    print "sample mean", np.nanmean(sample_data)
     print "boot interval", bootstrap_confidence(sample_data, delta_conf, num_b)
-    print "boot upper", bootstrap_confidence_upper(sample_data, delta_conf, num_b)
+    print "boot upper", bootstrap_empirical_confidence_upper(sample_data, delta_conf, num_b)
+    print "boot upper percent", bootstrap_percentile_confidence_upper(sample_data, delta_conf, num_b)
     print "value at risk 95%", value_at_risk(sample_data, delta_conf) 
-    print "phil lower bound 95%", phil_lower_bnd(sample_data, delta_conf, 1)
-    print "phil upper bound 95%", phil_upper_bnd(sample_data, delta_conf, 1)
+    print "phil lower bound 95%", phil_lower_bnd(sample_data, delta_conf, 3)
+    print "phil upper bound 95%", phil_upper_bnd(sample_data, delta_conf, 3)
     print "t-test", ttest_upper_bnd(sample_data, delta_conf)
 
 if __name__=="__main__":
