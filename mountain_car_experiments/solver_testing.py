@@ -4,12 +4,14 @@ Created on Jan 26, 2017
 @author: dsbrown
 '''
 
+import solvers.mdp
+import domains.mountain_car_discrete as mc
+import matplotlib.pyplot as plt
+from solvers.mdp import policy_iteration
+import random
+
 def main():
-    import solvers.mdp
-    import domains.mountain_car_discrete as mc
-    import matplotlib.pyplot as plt
-    from solvers.mdp import policy_iteration
-    import random
+
     
     world = mc.MountainCarGridMDP(20, gamma=.95)
     

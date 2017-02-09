@@ -12,7 +12,7 @@ from math import exp
 #takes 
 class BIRL_FEATURE():
     def __init__(self, expert_trace, grid_size, terminals, init, features, gamma, step_size=1.0, r_min=-10.0,
-                 r_max=10.0, prior = 'uniform', birl_iteration = 2000, prior_dict = {}, alpha=1.0):
+                 r_max=10.0, prior = 'uniform', birl_iteration = 2000, prior_dict = {}, alpha=1.0, start_mdp = None):
         self.n_rows, self.n_columns = grid_size
         self.r_min, self.r_max = r_min, r_max
         self.step_size = step_size
@@ -31,12 +31,16 @@ class BIRL_FEATURE():
         #print 'prior', self.prior
         self.birl_iteration = birl_iteration #how long to run the markov chain
         self.prior_dict = prior_dict
+        self.start_mdp = start_mdp
        
     def run_birl(self):
         #This is the core BIRL algorithm
         Rchain = [] #store rewards along the way, #TODO dictionaries are probably not best...
         #TODO make this a random reward vector
-        mdp = self.create_zero_weights() #pick a starting reward vector
+        if self.start_mdp == None:
+            mdp = self.create_zero_weights() #pick a starting reward vector
+        else:
+            mdp = copy.deepcopy(self.start_mdp)
         #Rchain.append(solvers.reward) #I don't think i want the initital random reward
         
         #print 'old rewards'
@@ -50,8 +54,8 @@ class BIRL_FEATURE():
         bestPosterior = posterior 
         bestMDP = mdp
         for i in range(self.birl_iteration):
-            if i % 10 == 0:
-                print "===== iter", i, "======"
+            #if i % 100 == 0:
+            #    print "===== iter", i, "======"
             #print i
             #print self.birl_iteration/10 
             #if i%(self.birl_iteration/10) == 0:
@@ -88,7 +92,7 @@ class BIRL_FEATURE():
                     if bestPosterior < new_posterior:
                         bestPosterior = new_posterior
                         bestMDP = new_mdp
-                        #print "best", i
+                        print "best", i, "P", bestPosterior
                         #bestMDP.print_rewards()
                         #bestMDP.print_arrows()
                     
@@ -133,6 +137,7 @@ class BIRL_FEATURE():
                         terminals=deepcopy(self.terminals), 
                         init = deepcopy(self.init), r_min=self.r_min,
                         r_max=self.r_max, gamma=self.gamma)
+                        
 
 #seems correct, gives the log (P(demo | R) * P(R))
 #TODO what do you do for the terminal state? when actions are None what do you normalize by
@@ -143,9 +148,9 @@ class BIRL_FEATURE():
 def calculate_posterior(mdp, q, expert_demos, prior, prior_dict, alpha):
     z = []
     e = 0
-    
+    #print expert_demos
     for s_e, a_e in expert_demos:
-        #print s_e, a_ed
+        #print s_e, a_e
         for a in mdp.actions(s_e):
             #print q[s_e, a]
             #print alpha
