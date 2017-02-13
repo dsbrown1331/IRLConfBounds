@@ -21,9 +21,9 @@ mcmc_step = 0.1
 burn = 0 #set this in analysis
 chain_lengths = [2000] #to be safe
 test_alphas = [100]   #seems to really affect how close we match the expert! with low values we get differences. with 100+ we get exact match to demos even in only a couple iterations like 20 steps of mcmc
-losses = range(3,16)
+losses = [3]
 ##EXPERIMENT PARAMS
-num_reps = 50
+num_reps = 1
 delta_conf = 0.95
 #demo_init = [(0,0),(4,4),(0,4),(4,0),(2,0),(0,2),(4,2),(2,4)] #set this after mdp is set to get all states
 ####make world

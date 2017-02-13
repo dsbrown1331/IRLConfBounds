@@ -13,7 +13,14 @@ from scipy import stats
 from numpy import NaN
 
 
-
+def percentile(sample_data, p):
+    data_sorted = np.sort(sample_data)
+    if p > 0.5:
+        idx = np.ceil(len(data_sorted) * p)
+    else:
+        idx = np.floor(len(data_sorted) * p)
+    return data_sorted[idx]
+    
 
 def bootstrap_confidence(sample_data, delta_conf, num_bootstrap):
     """Returns a 1-delta confidence bound on range of mean
@@ -124,7 +131,37 @@ def ttest_upper_bnd(sample_data, delta_conf):
     #print "sample_std", sample_std
     t_val = stats.t.ppf(delta_conf, m - 1)
     return sample_mean + sample_std / np.sqrt(m) * t_val
+
+def chernoff_hoeffding_upper_bnd(sample_data, delta_conf, b):
+    n = len(sample_data)
+    delta = 1 - delta_conf
+    sample_mean = np.nanmean(sample_data)
+    return sample_mean + b * np.sqrt(np.log(1/delta)/(2*n))
     
+def percentile_confidence_upper_bnd(sample_data, percentile, delta_conf):
+    """percentile should be a decimal, e.g. 75th percentile is 0.75, delta confidence is the true confidence, e.g. 0.95"""
+    
+    #sort the data
+    data_sorted = np.sort(sample_data)
+    
+    p = percentile 
+    #confidence level
+    alpha = 1 - delta_conf
+    num_samples = len(data_sorted)
+    #print p * num_samples
+    bin_mean = num_samples * p
+    bin_var = num_samples * p * (1 - p)
+    bin_std = np.sqrt(bin_var)
+    
+    #print "upper bound"
+    z_upper = stats.norm.ppf(1-alpha)
+    #print z_upper
+    upper_order_idx = int(np.ceil(z_upper * bin_std + bin_mean + 0.5))
+    #print upper_order_idx
+    
+    #double check math 
+    #print "conf level", stats.norm.cdf((upper_order_idx - 0.5 - bin_mean)/bin_std)
+    return data_sorted[upper_order_idx-1] #-1 since zero indexing
 
 #testing scripts for bounds
 def main():
